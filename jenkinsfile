@@ -1,7 +1,4 @@
 pipeline {
-options {
-    timeout(time: 5, unit: 'MINUTES')
-}
     agent any
 
     stages {
@@ -43,7 +40,13 @@ options {
             steps {
                 echo "Deploying WAR locally to Tomcat webapps folder..."
         sh '''
-          cp project/target/simple-war-app-1.0-SNAPSHOT.war /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/webapps
+
+           /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/bin/shutdown.sh
+
+           cp project/target/simple-war-app-1.0-SNAPSHOT.war /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/webapps
+
+          /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/bin/startup.sh
+
          '''
                 }
             }
