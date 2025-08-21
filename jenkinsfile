@@ -1,63 +1,38 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven 3'
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                echo "Cloning the repository..."
-                sh '''
-                    rm -rf project
-                    git clone -b main https://github.com/Manju-dotcom871/simple-maven-project-with-war.git project
-                '''
+                git url: '', branch: 'main'
             }
         }
 
         stage('Build') {
             steps {
-                echo "Building project using Maven..."
-                sh '''
-                    cd project
-                    mvn clean package -DskipTests
-                '''
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo "Checking if WAR file exists..."
-                sh '''
-                    if [ -f "project/target/simple-war-app-1.0-SNAPSHOT.war" ]; then
-                        echo "WAR file exists."
-                    else
-                        echo "WAR file not found!"
-                        exit 1
-                    fi
-                '''
+                // Skip tests while building
+                sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Deploy') {
-            steps {
-                echo "Deploying WAR locally to Tomcat webapps folder..."
+    steps {
         sh '''
+        # Stop Tomcat
+        /opt/tomcat/bin/shutdown.sh
 
-           /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/bin/shutdown.sh
+        # Copy WAR
+        cp target/simple-war-app-1.0-SNAPSHOT.war /opt/tomcat/webapps/
 
-           cp project/target/simple-war-app-1.0-SNAPSHOT.war /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/webapps
-
-          /home/ec2-user/simple-java-maven-app/target/apache-tomcat-9.0.108/bin/startup.sh
-
-         '''
-                }
-            }
-        }
+        # Start Tomcat
+        /opt/tomcat/bin/startup.sh
+        '''
     }
+}
 
-    post {
-        success {
-            echo '✅ Deployment successful!'
-        }
-        failure {
-            echo '❌ Deployment failed.'
-        }
     }
+}
